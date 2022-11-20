@@ -80,7 +80,7 @@ void fetch_payload()
   printf("success!\n");
 }
 
-int run_payload()
+int run_payload(int argc, LPTSTR argv[])
 {
   if (!g_Payload) {
     std::cerr << "[!] The payload is not loaded!\n";
@@ -114,11 +114,11 @@ int run_payload()
   else {
     std::cout << "[+] starting EXE payload...\n";
     //the simplest prototype of the main fuction:
-    int basic_main(void);
+    int basic_main(int, LPTSTR []);
     auto new_main = reinterpret_cast<decltype(&basic_main)>(ep_va);
     
     //call the Entry Point of the manually loaded PE:
-    ret = new_main();
+    ret = new_main(argc, argv);
   }
   return ret;
 }
@@ -127,5 +127,5 @@ int _tmain(int argc, LPTSTR argv[])
 {
   fetch_payload();
   std::cout << "[+] Payload loaded!\n";
-  return run_payload();
+  return run_payload(argc, argv);
 }
