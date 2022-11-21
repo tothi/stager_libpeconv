@@ -12,8 +12,8 @@ cross-compiler toolset installed) using the provided [Makefile](./Makefile)
 (config params for make are mandatory):
 
 ```
-make IMPLANT_IP=192.168.56.1 IMPLANT_PORT=8889
+make stager IMPLANT_IP=192.168.56.1 IMPLANT_PORT=8889
 ```
 
-The stager.exe binary output is in the [dist](./dist) folder.
+The stager.exe binary output is built into the [dist](./dist) folder.
 
