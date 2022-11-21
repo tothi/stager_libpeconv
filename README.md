@@ -8,12 +8,12 @@ git clone --recurse-submodules https://github.com/tothi/stager_libpeconv
 ```
 
 Compiling should work on Linux (with [mingw-w64](https://www.mingw-w64.org/)
-cross-compiler toolset installed) using the provided [Makefile](./Makefile):
+cross-compiler toolset installed) using the provided [Makefile](./Makefile)
+(config params for make are mandatory):
 
 ```
-make
+make IMPLANT_IP=192.168.56.1 IMPLANT_PORT=8889
 ```
 
 The stager.exe binary output is in the [dist](./dist) folder.
 
-The stager server IP and port is hardcoded in the [stager/stager.cpp](./stager/stager.cpp) currently (IMPLANT_IP and IMPLANT_PORT definitions).

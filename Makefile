@@ -1,6 +1,17 @@
 src_libpeconv = $(wildcard libpeconv/libpeconv/src/*.cpp)
 obj_libpeconv = $(src_libpeconv:.cpp=.o)
 
+# configure parameters in compile-time
+
+ifndef IMPLANT_IP
+$(error IMPLANT_IP is not set)
+endif
+ifndef IMPLANT_PORT
+$(error IMPLANT_PORT ist not set)
+endif
+
+CONFIG = -DIMPLANT_IP=\"$(IMPLANT_IP)\" -DIMPLANT_PORT=$(IMPLANT_PORT)
+
 INC = -Ilibpeconv/libpeconv/include
 CFLAGS = -Wno-conversion-null -Wno-pointer-arith
 LDFLAGS = -lntdll -static
@@ -23,7 +34,7 @@ dist/libpeconv.a: $(obj_libpeconv)
 	${AR_x64} rcs dist/libpeconv.a $^
 
 dist/stager.exe: dist/libpeconv.a
-	$(CXX_x64) stager/stager.cpp -o dist/stager.exe $(CFLAGS) $(INC) $(LDFLAGS2)
+	$(CXX_x64) stager/stager.cpp -o dist/stager.exe $(CFLAGS) $(INC) $(LDFLAGS2) $(CONFIG)
 
 clean:
 	rm -f libpeconv/libpeconv/src/*.o
