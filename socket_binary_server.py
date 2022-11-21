@@ -12,6 +12,7 @@ import os
 
 class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
+        print("[+] connection from %s" % self.client_address[0])
         self.request.sendall(struct.pack('<I', len(PAYLOAD)) + PAYLOAD)
 
 if __name__ == "__main__":
