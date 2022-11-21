@@ -30,3 +30,22 @@ For generating encrypted payload, you may use openssl (1.1):
 ```
 openssl-1.1 enc -rc4 -in payload.exe -K `echo -n '1234567890123456' | xxd -p` -nosalt -out payload.bin
 ```
+
+There is also local file load supported (besides the TCP Meterpreter stager). For activating local file read,
+compile with PAYLOAD_FILE option (RC4 is highly recommended with local payloads):
+
+```
+make stager PAYLOAD_FILE=stage.bin RC4_KEY=1234567890123456
+```
+
+For cleaning the stager:
+
+```
+make clean
+```
+
+For cleaning libpeconv also:
+
+```
+make cleanall
+```

